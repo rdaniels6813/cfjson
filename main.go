@@ -398,20 +398,22 @@ func loadClickhouse(foldersWithUnzippedS3Logs []string) {
 		// if err := conn.Exec(ctx, fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName)); err != nil {
 		// 	log.Fatal(err)
 		// }
-		err = conn.Exec(ctx, fmt.Sprintf(`
+		createStatement := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
 			%s
-		) Engine = MergeTree
-	`, (&cfLog{}).ClickHouseSchema(), tableName))
+		) Engine = MergeTree()
+		PRIMARY KEY (RayID)
+	`, tableName, (&cfLog{}).ClickHouseSchema())
+		err = conn.Exec(ctx, createStatement)
 		if err != nil {
 			log.Fatal(err)
 		}
-		loadFolder(ctx, conn, folder)
+		loadFolder(ctx, conn, folder, tableName)
 	}
 }
 
-func loadFolder(ctx context.Context, conn clickhouse.Conn, dirName string) {
-	batch, err := conn.PrepareBatch(ctx, "INSERT INTO cloudflare")
+func loadFolder(ctx context.Context, conn clickhouse.Conn, dirName string, tableName string) {
+	batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", tableName))
 	if err != nil {
 		log.Fatal(err)
 	}
