@@ -356,7 +356,7 @@ func loadClickhouse(foldersWithUnzippedS3Logs []string) {
 			fmt.Printf(format, v)
 		},
 		Settings: clickhouse.Settings{
-			"max_execution_time": 60,
+			"max_execution_time": 300,
 		},
 		Compression: &clickhouse.Compression{
 			Method: clickhouse.CompressionLZ4,
